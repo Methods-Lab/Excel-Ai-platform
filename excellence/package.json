@@ -1,0 +1,29 @@
+{
+  "name": "excel-ai-platform",
+  "version": "1.0.0",
+  "description": "An AI-powered robust agent for Microsoft Excel",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "electron:dev": "cd apps/shell && npm run dev"
+  },
+  "keywords": [
+    "excel",
+    "ai",
+    "agent",
+    "automation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "electron": "^28.0.0"
+  }
+}

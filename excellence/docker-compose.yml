@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # The main development environment for the Excel AI Agent
+  excel-ai-agent:
+    build:
+      context: .
+      target: runner
+    container_name: excel_ai_dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - .env
+    ports:
+      - "5173:5173"  # Vite Dev Server
+      - "8000:8000"  # AI Core / Backend API
+      - "9222:9222"  # Remote Debugging Port
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    stdin_open: true
+    tty: true
+
+  # Local AI model service (optional, can be enabled if needed)
+  # local-llm:
+  #   image: ollama/ollama
+  #   ports:
+  #     - "11434:11434"
