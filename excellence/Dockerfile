@@ -18,10 +18,11 @@ RUN apt-get update && apt-get install -y \
 # Copy root package files first
 COPY package*.json ./
 
-# Attempt to copy workspace package files if they exist
-# (Using wildcards to prevent build failure if some are missing)
-COPY apps/*/package*.json ./apps/ 2>/dev/null || true
-COPY packages/*/package*.json ./packages/ 2>/dev/null || true
+# Copy workspace manifests before the full source for better dependency caching.
+COPY apps/renderer/package*.json ./apps/renderer/
+COPY packages/shared-types/package*.json ./packages/shared-types/
+COPY packages/excel-sdk/package*.json ./packages/excel-sdk/
+COPY packages/extraction-core/package*.json ./packages/extraction-core/
 
 # Install dependencies
 # If root package.json is empty, this will just create a node_modules folder
@@ -43,4 +44,4 @@ COPY --from=builder /app .
 EXPOSE 5173
 EXPOSE 8000
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "-w", "@excel-ai-platform/renderer"]
