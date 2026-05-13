@@ -1,75 +1,31 @@
-export type ColumnType = 'text' | 'number' | 'currency' | 'date';
+export type {
+  CellData,
+  ColumnSchema,
+  FlaggedCell,
+  InferredType,
+  TableModel,
+} from '@excel-ai-platform/extraction-core';
 
-export interface ColumnDef {
-  name: string;
-  type: ColumnType;
-  format?: string;
-}
+export type {
+  DuplicateDetectionResult,
+  IssueSeverity,
+  IssueType,
+  SumReconciliationResult,
+  ValidationIssue,
+  ValidationResult,
+} from '@excel-ai-platform/extraction-core';
 
-export interface RowData {
-  value: string | number;
-  confidence: number;
-  flagged: boolean;
-  suggestedFix?: string | number;
-}
+export type {
+  ExtractionError,
+  ExtractionInput,
+  ExtractionJob,
+  ExtractionPhase,
+  ImageInput,
+  InputModality,
+  JobStatus,
+  MixedInput,
+  TextInput,
+  UrlInput,
+} from '@excel-ai-platform/extraction-core';
 
-export interface TableModel {
-  id: string;
-  columns: ColumnDef[];
-  rows: RowData[][];
-  sheetName?: string;
-  tableName?: string;
-}
-
-export interface FlaggedCell {
-  row: number;
-  col: number;
-  currentValue: string;
-  suggestedFix: string;
-  reason: string;
-}
-
-export type ExtractionSource = 'image' | 'url' | 'text' | 'document';
-
-export interface ExtractionResult {
-  source: ExtractionSource;
-  table: TableModel;
-  overallConfidence: number;
-  flaggedCells: FlaggedCell[];
-}
-
-export interface SheetInfo {
-  name: string;
-  tables: TableModel[];
-}
-
-export interface WorkbookInfo {
-  path: string;
-  sheets: SheetInfo[];
-}
-
-export interface CellAddress {
-  row: number;
-  col: number;
-}
-
-export type ChatRole = 'user' | 'assistant';
-
-export interface ChatMessage {
-  id: string;
-  role: ChatRole;
-  content: string | ExtractionResult;
-  timestamp: number;
-}
-
-export type ExtractionStatus = 'idle' | 'processing' | 'preview' | 'committed' | 'failed';
-
-export interface ExtractionJob {
-  id: string;
-  source: ExtractionSource;
-  status: ExtractionStatus;
-  progress: number;
-  message?: string;
-  error?: string;
-  result?: ExtractionResult;
-}
+export type { ExtractionResult } from '@excel-ai-platform/extraction-core';

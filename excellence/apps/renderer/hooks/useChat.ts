@@ -1,11 +1,10 @@
 import { useCallback } from 'react';
-import { IPC_CHANNELS } from '@codex-excel/shared-types';
 import { useChatStore } from '../stores/chatStore';
 import { useIPCBridge } from './useIPCBridge';
 
 export function useChat() {
   const { messages, isLoading, error, addMessage, setError, setLoading } = useChatStore();
-  const { invoke } = useIPCBridge();
+  const { send } = useIPCBridge();
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -17,8 +16,8 @@ export function useChat() {
       setError(null);
 
       try {
-        const response = await invoke(IPC_CHANNELS.CHAT_SEND, { text: trimmed });
-        addMessage({ role: 'assistant', content: response.text });
+        const response = await send(trimmed);
+        addMessage({ role: 'assistant', content: response.message });
       } catch (caught) {
         const message = caught instanceof Error ? caught.message : 'Chat request failed.';
         setError(message);
@@ -27,7 +26,7 @@ export function useChat() {
         setLoading(false);
       }
     },
-    [addMessage, invoke, setError, setLoading]
+    [addMessage, send, setError, setLoading]
   );
 
   const sendExtractionResult = useCallback(

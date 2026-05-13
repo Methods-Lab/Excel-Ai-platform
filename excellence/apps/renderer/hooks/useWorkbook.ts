@@ -1,29 +1,22 @@
 import { useCallback } from 'react';
-import { IPC_CHANNELS, type WorkbookInfo } from '@codex-excel/shared-types';
+import type { WorkbookInfo } from '@codex-excel/shared-types';
 import { useWorkbookStore } from '../stores/workbookStore';
 import { useIPCBridge } from './useIPCBridge';
 
 export function useWorkbook() {
   const store = useWorkbookStore();
-  const { invoke } = useIPCBridge();
+  const { load } = useIPCBridge();
 
   const loadWorkbook = useCallback(
     async (path?: string) => {
       store.setError(null);
 
       try {
-        let targetPath = path;
-        if (!targetPath) {
-          const result = await invoke(IPC_CHANNELS.WORKBOOK_OPEN_DIALOG, {});
-          if (result.canceled) {
-            return null;
-          }
-          targetPath = result.path;
+        if (!path) {
+          throw new Error('File path is required to load a workbook.');
         }
 
-        const workbook: WorkbookInfo = await invoke(IPC_CHANNELS.WORKBOOK_LOAD, {
-          path: targetPath,
-        });
+        const workbook: WorkbookInfo = await load(path);
         store.loadWorkbook(workbook);
         return workbook;
       } catch (caught) {
@@ -32,20 +25,11 @@ export function useWorkbook() {
         throw caught;
       }
     },
-    [invoke, store]
-  );
-
-  const saveWorkbook = useCallback(
-    async (path?: string) => {
-      const response = await invoke(IPC_CHANNELS.WORKBOOK_SAVE, { path });
-      return response;
-    },
-    [invoke]
+    [load, store]
   );
 
   return {
     ...store,
     loadWorkbook,
-    saveWorkbook,
   };
 }

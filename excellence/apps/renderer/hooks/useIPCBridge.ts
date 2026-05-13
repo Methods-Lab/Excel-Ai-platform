@@ -1,20 +1,39 @@
-import { useCallback, useMemo } from 'react';
-import {
-  IPC_CHANNELS,
-  type ChatSendRequest,
-  type ExtractFromDocumentRequest,
-  type IPCChannel,
-  type IPCRequestMap,
-  type IPCResponseMap,
-  type TableCommitRequest,
-  type TablePreviewRequest,
-  type WorkbookLoadRequest,
-  type WorkbookSaveRequest,
+import { useMemo } from 'react';
+import type {
+  ChatResponse,
+  CommitResult,
+  IChatService,
+  IExtractionService,
+  IWorkbookService,
+  WorkbookInfo,
 } from '@codex-excel/shared-types';
+import type { IpcChannel, IpcResponse } from '@codex-excel/shared-types';
+import type { ExtractionResult, TableModel } from '@excel-ai-platform/extraction-core';
+import {
+  createMockChatResponse,
+  createMockExtractionResult,
+  createMockWorkbookInfo,
+} from '../mocks/sampleData';
 
 interface ElectronAPI {
-  invoke: <TRequest, TResponse>(channel: string, payload: TRequest) => Promise<TResponse>;
-  on: (channel: string, callback: (data: unknown) => void) => () => void;
+  chat: {
+    send: (prompt: string) => Promise<IpcResponse<ChatResponse>>;
+  };
+  extract: {
+    fromImage: (base64: string, mimeType: string) => Promise<IpcResponse<ExtractionResult>>;
+    fromUrl: (url: string, hint?: string) => Promise<IpcResponse<ExtractionResult>>;
+    fromText: (content: string) => Promise<IpcResponse<ExtractionResult>>;
+  };
+  workbook: {
+    load: (filePath: string) => Promise<IpcResponse<WorkbookInfo>>;
+    commit: (tableModel: TableModel) => Promise<IpcResponse<CommitResult>>;
+    rollback: () => Promise<IpcResponse<void>>;
+    snapshot: () => Promise<IpcResponse<string>>;
+  };
+  on: (
+    channel: IpcChannel,
+    listener: (response: IpcResponse<unknown>) => void
+  ) => () => void;
 }
 
 declare global {
@@ -25,126 +44,89 @@ declare global {
 
 const MOCK_IPC_ENABLED = import.meta.env.VITE_ENABLE_MOCK_IPC === 'true';
 
-const shellNotReadyMessage =
-  'Shell handler not implemented or Electron preload unavailable. Enable VITE_ENABLE_MOCK_IPC=true for local renderer dev mode.';
-
 const delay = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
-async function invokeMock<C extends IPCChannel>(
-  channel: C,
-  payload: IPCRequestMap[C]
-): Promise<IPCResponseMap[C]> {
-  const mocks = await import('../mocks/sampleData');
-
-  switch (channel) {
-    case IPC_CHANNELS.EXTRACT_FROM_IMAGE:
-      await delay(900);
-      return mocks.createMockExtractionResult('image') as IPCResponseMap[C];
-    case IPC_CHANNELS.EXTRACT_FROM_URL:
-      await delay(1000);
-      return mocks.createMockExtractionResult('url') as IPCResponseMap[C];
-    case IPC_CHANNELS.EXTRACT_FROM_TEXT:
-      await delay(700);
-      return mocks.createMockExtractionResult('text') as IPCResponseMap[C];
-    case IPC_CHANNELS.EXTRACT_FROM_DOCUMENT: {
-      await delay(1100);
-      const request = payload as ExtractFromDocumentRequest;
-      const result = mocks.createMockExtractionResult('document');
-      return {
-        ...result,
-        table: {
-          ...result.table,
-          tableName: request.fileName.replace(/\.[^.]+$/, '') || result.table.tableName,
-        },
-      } as IPCResponseMap[C];
-    }
-    case IPC_CHANNELS.WORKBOOK_OPEN_DIALOG:
-      return { canceled: false, path: 'C:/Users/You/Documents/Sales_Data.xlsx' } as IPCResponseMap[C];
-    case IPC_CHANNELS.WORKBOOK_LOAD: {
-      const request = payload as WorkbookLoadRequest;
-      await delay(350);
-      return mocks.createMockWorkbookInfo(request.path) as IPCResponseMap[C];
-    }
-    case IPC_CHANNELS.WORKBOOK_SAVE: {
-      const request = payload as WorkbookSaveRequest;
-      return { success: true, path: request.path ?? 'C:/Users/You/Documents/Sales_Data.xlsx' } as IPCResponseMap[C];
-    }
-    case IPC_CHANNELS.TABLE_COMMIT: {
-      const request = payload as TableCommitRequest;
-      const colLetter = String.fromCharCode(64 + request.table.columns.length);
-      const lastRow = request.table.rows.length + 1;
-      return {
-        success: true,
-        sheetName: request.sheetName,
-        range: `A1:${colLetter}${lastRow}`,
-      } as IPCResponseMap[C];
-    }
-    case IPC_CHANNELS.TABLE_PREVIEW: {
-      const request = payload as TablePreviewRequest;
-      return {
-        rowCount: request.table.rows.length,
-        colCount: request.table.columns.length,
-      } as IPCResponseMap[C];
-    }
-    case IPC_CHANNELS.RELAY_STATUS:
-      return {
-        jobId: (payload as { jobId: string }).jobId,
-        status: 'processing',
-        progress: 50,
-        message: 'Processing in mock mode',
-      } as IPCResponseMap[C];
-    case IPC_CHANNELS.CHAT_SEND:
-      await delay(500);
-      return mocks.createMockChatResponse(payload as ChatSendRequest) as IPCResponseMap[C];
-    default:
-      throw new Error(`No mock handler for channel: ${channel}`);
+const unwrap = <T>(response: IpcResponse<T>): T => {
+  if (!response.success) {
+    throw new Error(response.error?.message ?? 'IPC request failed.');
   }
-}
+  if (response.data === undefined) {
+    throw new Error('IPC response missing data.');
+  }
+  return response.data;
+};
 
-export function useIPCBridge() {
-  const isElectron = typeof window !== 'undefined' && Boolean(window.electronAPI);
+const createMockBridge = (): IChatService &
+  IExtractionService &
+  IWorkbookService & { on: ElectronAPI['on'] } => ({
+  send: async (prompt: string) => {
+    await delay(600);
+    return createMockChatResponse({ prompt });
+  },
+  fromImage: async (base64: string, mimeType: string) => {
+    await delay(2000);
+    return createMockExtractionResult('ocr', { base64, mimeType });
+  },
+  fromUrl: async (url: string, hint?: string) => {
+    await delay(2200);
+    return createMockExtractionResult('cheerio', { url, hint });
+  },
+  fromText: async (content: string) => {
+    await delay(1800);
+    return createMockExtractionResult('text', { content });
+  },
+  load: async (filePath: string) => {
+    await delay(500);
+    return createMockWorkbookInfo(filePath);
+  },
+  commit: async (tableModel: TableModel) => {
+    await delay(800);
+    const colLetter = String.fromCharCode(64 + tableModel.headers.length);
+    const lastRow = tableModel.rows.length + 1;
+    return {
+      range: `A1:${colLetter}${lastRow}`,
+      sheetName: tableModel.sheetName,
+      rowsWritten: tableModel.rows.length,
+    };
+  },
+  rollback: async () => {
+    await delay(300);
+  },
+  snapshot: async () => {
+    await delay(300);
+    return 'C:/Users/You/Documents/Workbook_Snapshot.xlsx';
+  },
+  on: () => () => undefined,
+});
 
-  const invoke = useCallback(
-    async <C extends IPCChannel>(
-      channel: C,
-      payload: IPCRequestMap[C]
-    ): Promise<IPCResponseMap[C]> => {
-      if (isElectron && window.electronAPI) {
-        return window.electronAPI.invoke<IPCRequestMap[C], IPCResponseMap[C]>(channel, payload);
-      }
+export function useIPCBridge():
+  IChatService & IExtractionService & IWorkbookService & { on: ElectronAPI['on'] } {
+  const isElectron = typeof window !== 'undefined' && !!window.electronAPI;
 
-      if (MOCK_IPC_ENABLED) {
-        return invokeMock(channel, payload);
-      }
+  return useMemo(() => {
+    if (isElectron && window.electronAPI) {
+      return {
+        send: async (prompt: string) => unwrap(await window.electronAPI.chat.send(prompt)),
+        fromImage: async (base64: string, mimeType: string) =>
+          unwrap(await window.electronAPI.extract.fromImage(base64, mimeType)),
+        fromUrl: async (url: string, hint?: string) =>
+          unwrap(await window.electronAPI.extract.fromUrl(url, hint)),
+        fromText: async (content: string) =>
+          unwrap(await window.electronAPI.extract.fromText(content)),
+        load: async (filePath: string) =>
+          unwrap(await window.electronAPI.workbook.load(filePath)),
+        commit: async (tableModel: TableModel) =>
+          unwrap(await window.electronAPI.workbook.commit(tableModel)),
+        rollback: async () => unwrap(await window.electronAPI.workbook.rollback()),
+        snapshot: async () => unwrap(await window.electronAPI.workbook.snapshot()),
+        on: window.electronAPI.on,
+      };
+    }
 
-      throw new Error(shellNotReadyMessage);
-    },
-    [isElectron]
-  );
+    if (MOCK_IPC_ENABLED) {
+      return createMockBridge();
+    }
 
-  const on = useCallback(
-    (channel: IPCChannel, callback: (data: unknown) => void) => {
-      if (isElectron && window.electronAPI) {
-        return window.electronAPI.on(channel, callback);
-      }
-
-      if (MOCK_IPC_ENABLED) {
-        return () => undefined;
-      }
-
-      throw new Error(`Cannot subscribe to ${channel}. ${shellNotReadyMessage}`);
-    },
-    [isElectron]
-  );
-
-  return useMemo(
-    () => ({
-      invoke,
-      on,
-      isElectron,
-      isMockMode: MOCK_IPC_ENABLED,
-      shellNotReadyMessage,
-    }),
-    [invoke, isElectron, on]
-  );
+    return createMockBridge();
+  }, [isElectron]);
 }

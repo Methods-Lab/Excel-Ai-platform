@@ -1,9 +1,13 @@
 import { create } from 'zustand';
 import type { SheetInfo, TableModel, WorkbookInfo } from '@codex-excel/shared-types';
 
+interface SheetState extends SheetInfo {
+  tables: TableModel[];
+}
+
 interface WorkbookState {
   workbookPath: string | null;
-  sheets: SheetInfo[];
+  sheets: SheetState[];
   activeSheet: string | null;
   isLoaded: boolean;
   error: string | null;
@@ -23,8 +27,8 @@ export const useWorkbookStore = create<WorkbookState>((set) => ({
   error: null,
   loadWorkbook: (workbook) =>
     set({
-      workbookPath: workbook.path,
-      sheets: workbook.sheets,
+      workbookPath: workbook.filePath,
+      sheets: workbook.sheets.map((sheet) => ({ ...sheet, tables: [] })),
       activeSheet: workbook.sheets[0]?.name ?? null,
       isLoaded: true,
       error: null,
@@ -50,7 +54,7 @@ export const useWorkbookStore = create<WorkbookState>((set) => ({
       }
 
       return {
-        sheets: [...state.sheets, { name, tables: [] }],
+        sheets: [...state.sheets, { name, rowCount: 0, colCount: 0, tables: [] }],
         activeSheet: name,
         error: null,
         isLoaded: state.isLoaded || state.sheets.length === 0,
@@ -58,7 +62,9 @@ export const useWorkbookStore = create<WorkbookState>((set) => ({
     }),
   addTableToSheet: (sheetName, table) =>
     set((state) => {
-      const sheets = state.sheets.length ? state.sheets : [{ name: sheetName, tables: [] }];
+      const sheets = state.sheets.length
+        ? state.sheets
+        : [{ name: sheetName, rowCount: 0, colCount: 0, tables: [] }];
       const nextSheets = sheets.map((sheet) =>
         sheet.name === sheetName
           ? { ...sheet, tables: [...sheet.tables, { ...table, sheetName }] }
@@ -66,7 +72,12 @@ export const useWorkbookStore = create<WorkbookState>((set) => ({
       );
 
       if (!nextSheets.some((sheet) => sheet.name === sheetName)) {
-        nextSheets.push({ name: sheetName, tables: [{ ...table, sheetName }] });
+        nextSheets.push({
+          name: sheetName,
+          rowCount: 0,
+          colCount: 0,
+          tables: [{ ...table, sheetName }],
+        });
       }
 
       return {

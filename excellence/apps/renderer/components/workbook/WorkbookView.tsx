@@ -39,7 +39,10 @@ export function WorkbookView() {
           description="Load an Excel workbook before committing extracted tables."
           action={{
             label: 'Load workbook',
-            onClick: () => void loadWorkbook(),
+            onClick: () => {
+              const path = window.prompt('Enter workbook file path');
+              if (path) void loadWorkbook(path);
+            },
           }}
         />
       </div>

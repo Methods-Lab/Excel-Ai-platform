@@ -1,5 +1,4 @@
 import { FolderOpen, RotateCcw, ScanText, ShieldCheck } from 'lucide-react';
-import { useIPCBridge } from '../../hooks/useIPCBridge';
 import { useWorkbook } from '../../hooks/useWorkbook';
 import { useToast } from '../shared/Toast';
 import { WorkbookStatusBar } from '../workbook/WorkbookStatusBar';
@@ -7,12 +6,15 @@ import { WorkbookView } from '../workbook/WorkbookView';
 
 export function Sidebar() {
   const { loadWorkbook, closeWorkbook, isLoaded, error } = useWorkbook();
-  const { isMockMode, isElectron } = useIPCBridge();
+  const isElectron = typeof window !== 'undefined' && !!window.electronAPI;
+  const isMockMode = import.meta.env.VITE_ENABLE_MOCK_IPC === 'true';
   const { addToast } = useToast();
 
   const handleLoadWorkbook = async () => {
     try {
-      await loadWorkbook();
+      const path = window.prompt('Enter workbook file path');
+      if (!path) return;
+      await loadWorkbook(path);
       addToast({ title: 'Workbook loaded', variant: 'success' });
     } catch (caught) {
       addToast({
@@ -74,7 +76,7 @@ function GuardrailStatus({
 }) {
   const items = [
     { label: 'IPC', value: isElectron ? 'Electron' : isMockMode ? 'Mock' : 'Required', icon: ShieldCheck },
-    { label: 'OCR', value: '85%', icon: ScanText },
+    { label: 'OCR', value: '0.75', icon: ScanText },
     { label: 'Undo', value: 'Armed', icon: RotateCcw },
   ];
 

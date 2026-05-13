@@ -21,17 +21,16 @@ function readFileAsBase64(file: File) {
 
 export function ChatView() {
   const { messages, isLoading, sendMessage, sendExtractionResult } = useChat();
-  const { extractFromImage, extractFromURL, extractFromText, extractFromDocument } = useExtraction();
+  const { extractFromImage, extractFromURL, extractFromText } = useExtraction();
   const { addToast } = useToast();
   const imageInputRef = useRef<HTMLInputElement | null>(null);
-  const documentInputRef = useRef<HTMLInputElement | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
 
   const handleExtraction = async (runner: () => Promise<unknown>, successTitle: string) => {
     setIsExtracting(true);
     try {
       const result = await runner();
-      if (result && typeof result === 'object' && 'table' in result) {
+      if (result && typeof result === 'object' && 'tableModel' in result) {
         sendExtractionResult(result as ExtractionResult);
       }
       addToast({ title: successTitle, description: 'Review the preview before committing.', variant: 'success' });
@@ -48,7 +47,7 @@ export function ChatView() {
 
   const handleImageFile = async (file: File) => {
     const imageBase64 = await readFileAsBase64(file);
-    return extractFromImage(imageBase64);
+    return extractFromImage(imageBase64, file.type || 'image/png');
   };
 
   const promptUrl = () => {
@@ -70,7 +69,6 @@ export function ChatView() {
         <div className="mx-auto max-w-4xl space-y-3">
           <QuickActions
             disabled={isExtracting}
-            onDocument={() => documentInputRef.current?.click()}
             onImage={() => imageInputRef.current?.click()}
             onUrl={promptUrl}
             onText={promptText}
@@ -87,19 +85,6 @@ export function ChatView() {
             event.currentTarget.value = '';
             if (file) {
               void handleExtraction(() => handleImageFile(file), 'Image extraction ready');
-            }
-          }}
-        />
-        <input
-          ref={documentInputRef}
-          type="file"
-          accept=".pdf,.csv,.xlsx,.xls,.txt,.doc,.docx,application/pdf,text/plain,text/csv"
-          className="hidden"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            event.currentTarget.value = '';
-            if (file) {
-              void handleExtraction(() => extractFromDocument(file), 'Document extraction ready');
             }
           }}
         />

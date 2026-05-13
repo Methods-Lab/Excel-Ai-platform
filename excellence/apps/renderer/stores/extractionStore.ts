@@ -1,12 +1,22 @@
 import { create } from 'zustand';
-import type { ExtractionJob, ExtractionResult, ExtractionSource } from '@codex-excel/shared-types';
+import type {
+  ExtractionInput,
+  ExtractionJob,
+  ExtractionResult,
+  InputModality,
+} from '@codex-excel/shared-types';
+
+interface ExtractionJobView extends ExtractionJob {
+  progress: number;
+  message?: string;
+}
 
 interface ExtractionState {
-  currentJob: ExtractionJob | null;
-  jobs: ExtractionJob[];
+  currentJob: ExtractionJobView | null;
+  jobs: ExtractionJobView[];
   previewResult: ExtractionResult | null;
   isPreviewOpen: boolean;
-  startExtraction: (source: ExtractionSource) => string;
+  startExtraction: (input: ExtractionInput) => string;
   updateProgress: (jobId: string, progress: number, message?: string) => void;
   showPreview: (jobId: string, result: ExtractionResult) => void;
   updatePreviewResult: (result: ExtractionResult) => void;
@@ -16,9 +26,9 @@ interface ExtractionState {
 }
 
 const updateJob = (
-  jobs: ExtractionJob[],
+  jobs: ExtractionJobView[],
   jobId: string,
-  patch: Partial<ExtractionJob>
+  patch: Partial<ExtractionJobView>
 ) => jobs.map((job) => (job.id === jobId ? { ...job, ...patch } : job));
 
 export const useExtractionStore = create<ExtractionState>((set) => ({
@@ -26,12 +36,19 @@ export const useExtractionStore = create<ExtractionState>((set) => ({
   jobs: [],
   previewResult: null,
   isPreviewOpen: false,
-  startExtraction: (source) => {
+  startExtraction: (input) => {
     const id = crypto.randomUUID();
-    const job: ExtractionJob = {
+    const now = Date.now();
+    const modality: InputModality = input.type === 'mixed' ? 'mixed' : input.type;
+    const job: ExtractionJobView = {
       id,
-      source,
+      modality,
+      phase: 'phase1',
       status: 'processing',
+      priority: 5,
+      input,
+      createdAt: now,
+      updatedAt: now,
       progress: 0,
       message: 'Starting extraction...',
     };
@@ -47,21 +64,32 @@ export const useExtractionStore = create<ExtractionState>((set) => ({
     set((state) => ({
       currentJob:
         state.currentJob?.id === jobId
-          ? { ...state.currentJob, progress, message }
+          ? { ...state.currentJob, progress, message, updatedAt: Date.now() }
           : state.currentJob,
-      jobs: updateJob(state.jobs, jobId, { progress, message }),
+      jobs: updateJob(state.jobs, jobId, {
+        progress,
+        message,
+        updatedAt: Date.now(),
+      }),
     })),
   showPreview: (jobId, result) =>
     set((state) => ({
       currentJob:
         state.currentJob?.id === jobId
-          ? { ...state.currentJob, status: 'preview', progress: 100, result }
+          ? {
+              ...state.currentJob,
+              status: 'awaiting_preview',
+              progress: 100,
+              result,
+              updatedAt: Date.now(),
+            }
           : state.currentJob,
       jobs: updateJob(state.jobs, jobId, {
-        status: 'preview',
+        status: 'awaiting_preview',
         progress: 100,
         result,
         message: 'Preview ready',
+        updatedAt: Date.now(),
       }),
       previewResult: result,
       isPreviewOpen: true,
@@ -71,21 +99,37 @@ export const useExtractionStore = create<ExtractionState>((set) => ({
     set((state) => ({
       currentJob:
         state.currentJob?.id === jobId
-          ? { ...state.currentJob, status: 'committed', progress: 100 }
+          ? {
+              ...state.currentJob,
+              status: 'committed',
+              progress: 100,
+              updatedAt: Date.now(),
+            }
           : state.currentJob,
       jobs: updateJob(state.jobs, jobId, {
         status: 'committed',
         progress: 100,
         message: 'Committed to workbook',
+        updatedAt: Date.now(),
       }),
     })),
   failJob: (jobId, error) =>
     set((state) => ({
       currentJob:
         state.currentJob?.id === jobId
-          ? { ...state.currentJob, status: 'failed', error }
+          ? {
+              ...state.currentJob,
+              status: 'failed',
+              error: { code: 'EXTRACTION_FAILED', message: error, recoverable: true },
+              updatedAt: Date.now(),
+            }
           : state.currentJob,
-      jobs: updateJob(state.jobs, jobId, { status: 'failed', error, message: error }),
+      jobs: updateJob(state.jobs, jobId, {
+        status: 'failed',
+        error: { code: 'EXTRACTION_FAILED', message: error, recoverable: true },
+        message: error,
+        updatedAt: Date.now(),
+      }),
     })),
   dismissPreview: () => set({ isPreviewOpen: false, previewResult: null }),
 }));

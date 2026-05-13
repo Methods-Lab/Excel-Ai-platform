@@ -1,9 +1,8 @@
-import { FileImage, FileText, Link2, Plus, Table2, Type } from 'lucide-react';
+import { FileImage, Link2, Plus, Table2, Type } from 'lucide-react';
 
 interface QuickActionsProps {
   disabled?: boolean;
   onImage: () => void;
-  onDocument: () => void;
   onUrl: () => void;
   onText: () => void;
 }
@@ -11,18 +10,10 @@ interface QuickActionsProps {
 export function QuickActions({
   disabled = false,
   onImage,
-  onDocument,
   onUrl,
   onText,
 }: QuickActionsProps) {
   const actions = [
-    {
-      label: 'Add document',
-      description: 'PDF, CSV, XLSX, or text file',
-      icon: FileText,
-      onClick: onDocument,
-      tone: 'text-violet-700 bg-violet-50 dark:bg-violet-950/30 dark:text-violet-300',
-    },
     {
       label: 'Image',
       description: 'Extract a photographed table',
