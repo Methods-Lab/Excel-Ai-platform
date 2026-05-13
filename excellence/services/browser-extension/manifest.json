@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Excellence Browser Relay",
+  "version": "0.1.0",
+  "description": "Captures web page HTML for the Excellence desktop app via WebSocket relay.",
+  "permissions": ["activeTab", "scripting"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Excellence Relay"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  }
+}

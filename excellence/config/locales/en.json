@@ -1,0 +1,67 @@
+{
+  "app": {
+    "title": "Excellence",
+    "subtitle": "AI-powered Excel assistant"
+  },
+  "chat": {
+    "placeholder": "Type a message or describe a table you need…",
+    "send": "Send",
+    "thinking": "Thinking…",
+    "error": "Something went wrong. Please try again."
+  },
+  "extraction": {
+    "fromImage": "Extract from Image",
+    "fromUrl": "Extract from URL",
+    "fromText": "Extract from Text",
+    "processing": "Processing extraction…",
+    "complete": "Extraction complete",
+    "failed": "Extraction failed"
+  },
+  "preview": {
+    "title": "Preview Extracted Table",
+    "flaggedCells": "Flagged Cells",
+    "confidence": "Confidence",
+    "commit": "Commit to Excel",
+    "cancel": "Cancel",
+    "editCell": "Edit Cell",
+    "acceptSuggestion": "Accept Suggestion",
+    "overallConfidence": "Overall Confidence"
+  },
+  "workbook": {
+    "load": "Load Workbook",
+    "commit": "Commit Changes",
+    "rollback": "Rollback",
+    "snapshot": "Take Snapshot",
+    "noFile": "No workbook loaded",
+    "locked": "This workbook is locked by another application",
+    "saved": "Changes saved successfully"
+  },
+  "consent": {
+    "title": "Consent Required",
+    "cloudAI": "This action requires sending data to a cloud AI service.",
+    "externalUrl": "This action will access an external URL.",
+    "allow": "Allow",
+    "deny": "Deny"
+  },
+  "settings": {
+    "title": "Settings",
+    "theme": "Theme",
+    "locale": "Excel Locale",
+    "ocrThreshold": "OCR Confidence Threshold",
+    "cloudAI": "Enable Cloud AI",
+    "localModel": "Local Model Path"
+  },
+  "errors": {
+    "networkError": "Network error. Check your connection.",
+    "validationError": "Invalid input. Please check your data.",
+    "consentDenied": "Operation cancelled — consent was denied.",
+    "timeout": "Request timed out. Please try again.",
+    "workbookLocked": "Workbook is locked by another process."
+  },
+  "status": {
+    "apiReady": "API service ready",
+    "ocrReady": "OCR service ready",
+    "modelLoaded": "Local AI model loaded",
+    "relayConnected": "Browser relay connected"
+  }
+}

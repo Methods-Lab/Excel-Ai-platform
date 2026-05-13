@@ -1,0 +1,51 @@
+# OCR Confidence Thresholds
+# Per-engine flag/error confidence thresholds
+
+global:
+  flagThreshold: 0.75
+  errorThreshold: 0.4
+  autoAcceptThreshold: 0.95
+
+engines:
+  windowsOCR:
+    flagThreshold: 0.7
+    errorThreshold: 0.35
+  tesseract:
+    flagThreshold: 0.75
+    errorThreshold: 0.4
+  paddleOCR:
+    flagThreshold: 0.8
+    errorThreshold: 0.45
+
+# Column type inference rules
+columnTypeRules:
+  currency:
+    patterns:
+      - '^\$[\d,]+\.?\d*$'
+      - '^€[\d,]+\.?\d*$'
+      - '^£[\d,]+\.?\d*$'
+    formats:
+      - '$#,##0.00'
+      - '€#,##0.00'
+      - '£#,##0.00'
+  percentage:
+    patterns:
+      - '^\d+\.?\d*%$'
+    formats:
+      - '0.0%'
+      - '0.00%'
+  date:
+    patterns:
+      - '^\d{4}-\d{2}-\d{2}$'
+      - '^\d{1,2}/\d{1,2}/\d{2,4}$'
+      - '^\d{1,2}-\w{3}-\d{4}$'
+    formats:
+      - 'yyyy-mm-dd'
+      - 'mm/dd/yyyy'
+  number:
+    patterns:
+      - '^\d+\.?\d*$'
+      - '^[\d,]+\.?\d*$'
+    formats:
+      - '#,##0'
+      - '#,##0.00'

@@ -1,8 +1,14 @@
+.env
 node_modules/
+__pycache__/
+*.gguf
+temp/
+*.enc
+dist/
 apps/*/node_modules/
 apps/*/dist/
 apps/*/*.tsbuildinfo
 apps/*/vite.config.js
 apps/*/vite.config.d.ts
-dist/
-.env
+.turbo/
+*.pyc

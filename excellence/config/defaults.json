@@ -1,0 +1,12 @@
+{
+  "ocrConfidenceThreshold": 0.75,
+  "allowedUrls": [],
+  "localModelPath": "",
+  "theme": "system",
+  "excelLocale": "en-US",
+  "cloudAIEnabled": false,
+  "maxImageSizeBytes": 10485760,
+  "maxConcurrentExtractions": 2,
+  "autoSaveBeforeCommit": true,
+  "relayLocalhostOnly": true
+}

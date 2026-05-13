@@ -1,0 +1,29 @@
+# Allowed URLs Configuration
+# Sites where static scraping (Cheerio) is known to be reliable
+# vs sites that require Playwright or browser relay
+
+staticScraping:
+  reliable:
+    - 'en.wikipedia.org'
+    - 'data.worldbank.org'
+    - 'www.imf.org'
+    - 'stats.oecd.org'
+    - 'www.cia.gov/the-world-factbook'
+
+requiresPlaywright:
+  - 'www.google.com/finance'
+  - 'finance.yahoo.com'
+  - 'www.bloomberg.com'
+
+requiresRelay:
+  - 'docs.google.com/spreadsheets'
+  - 'www.linkedin.com'
+
+blocked:
+  - 'localhost'
+  - '127.0.0.1'
+  - '0.0.0.0'
+
+rateLimiting:
+  defaultDelayMs: 1500
+  maxRequestsPerMinute: 10
