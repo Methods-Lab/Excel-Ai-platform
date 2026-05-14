@@ -1,5 +1,8 @@
 {
   "version": 2,
   "buildCommand": "npm run build -w @excel-ai-platform/renderer",
-  "outputDirectory": "apps/renderer/dist"
+  "outputDirectory": "apps/renderer/dist",
+  "routes": [
+    { "src": "^/.*", "dest": "/index.html" }
+  ]
 }
