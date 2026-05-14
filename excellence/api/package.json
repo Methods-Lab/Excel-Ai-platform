@@ -1,0 +1,21 @@
+{
+  "name": "@excel-ai-platform/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node index.ts",
+    "build": "echo 'API is serverless - no build needed'"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.3.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3"
+  }
+}

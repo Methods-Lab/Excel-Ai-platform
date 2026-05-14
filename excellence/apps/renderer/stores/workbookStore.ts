@@ -102,11 +102,13 @@ export const useWorkbookStore = create<WorkbookState>((set) => ({
       isLoaded: state.isLoaded,
       error: state.error,
     })),
-  rollbackLastCommit: () =>
+  rollbackLastCommit: () => {
+    let didRollback = false;
     set((state) => {
       const last = state.lastCommit;
-      if (!last) return { ...state } as any;
+      if (!last) return state;
 
+      didRollback = true;
       const nextSheets = state.sheets.map((sheet) =>
         sheet.name === last.sheetName
           ? { ...sheet, tables: sheet.tables.filter((t) => t.id !== last.tableId) }
@@ -122,6 +124,8 @@ export const useWorkbookStore = create<WorkbookState>((set) => ({
         isLoaded: state.isLoaded,
         error: state.error,
       };
-    }),
+    });
+    return didRollback;
+  },
   setError: (error) => set({ error }),
 }));

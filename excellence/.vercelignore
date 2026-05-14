@@ -1,0 +1,12 @@
+node_modules/
+.git/
+.gitignore
+README.md
+MIGRATION_NOTES.md
+docs/
+scripts/
+services/
+.env
+.env.example
+*.md
+.DS_Store
