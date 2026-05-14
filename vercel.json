@@ -3,7 +3,6 @@
   "buildCommand": "cd excellence && npm install && npm run build -w @excel-ai-platform/renderer",
   "outputDirectory": "excellence/apps/renderer/dist",
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/assets/(.*)", "dest": "/assets/$1" },
     { "src": ".*", "dest": "/index.html" }
   ]
