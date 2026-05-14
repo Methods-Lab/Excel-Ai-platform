@@ -1,7 +1,7 @@
 import { app, BrowserWindow, Menu, Notification, Tray, nativeImage } from 'electron';
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import path from 'node:path';
-import { API_PORT, OCR_PORT } from '@codex-excel/shared-types/config';
+import { API_PORT, OCR_PORT } from '@excellence/shared-types/config';
 import { LocalModelClient } from './local-ai/LocalModelClient';
 import { registerIpcHandlers } from './ipc-router';
 import { ChatService } from './services/ChatService';
@@ -18,13 +18,18 @@ const startService = (
 	name: string,
 	command: string,
 	args: string[],
-	cwd: string
+	cwd: string,
+	port?: number
 ): ChildProcessWithoutNullStreams => {
 	const child = spawn(command, args, {
 		cwd,
 		env: process.env,
 		shell: true,
 	});
+
+	if (port) {
+		process.stdout.write(`[${name}] Starting on port ${port}\n`);
+	}
 
 	child.stdout.on('data', (data) => {
 		process.stdout.write(`[${name}] ${data}`);
@@ -39,6 +44,7 @@ const startService = (
 const pollHealth = async (port: number, maxWaitMs = 20000): Promise<void> => {
 	const start = Date.now();
 	const url = `http://localhost:${port}/health`;
+	let lastError: unknown;
 
 	while (Date.now() - start < maxWaitMs) {
 		try {
@@ -46,16 +52,17 @@ const pollHealth = async (port: number, maxWaitMs = 20000): Promise<void> => {
 			if (res.ok) {
 				return;
 			}
-		} catch {
-			// retry
+		} catch (err) {
+			lastError = err;
 		}
 		await new Promise((resolve) => setTimeout(resolve, 500));
 	}
 
-	throw new Error(`Health check timed out for port ${port}.`);
+	const suffix = lastError ? ` Last error: ${String(lastError)}` : '';
+	throw new Error(`Health check timed out for port ${port}.${suffix}`);
 };
 
-const createWindow = (): BrowserWindow => {
+const createWindow = (onShown?: () => void): BrowserWindow => {
 	const win = new BrowserWindow({
 		width: 1280,
 		height: 840,
@@ -77,6 +84,7 @@ const createWindow = (): BrowserWindow => {
 
 	win.once('ready-to-show', () => {
 		win.show();
+		onShown?.();
 	});
 
 	return win;
@@ -109,56 +117,77 @@ const buildTray = (window: BrowserWindow): void => {
 };
 
 const shutdownProcess = async (proc: ChildProcessWithoutNullStreams | null): Promise<void> => {
-	if (!proc) return;
-	proc.kill('SIGTERM');
-	await new Promise<void>((resolve) => {
-		const timeout = setTimeout(() => {
-			proc.kill('SIGKILL');
-			resolve();
-		}, 3000);
-		proc.once('exit', () => {
-			clearTimeout(timeout);
-			resolve();
+	try {
+		if (!proc) return;
+		proc.kill('SIGTERM');
+		await new Promise<void>((resolve) => {
+			const timeout = setTimeout(() => {
+				proc.kill('SIGKILL');
+				resolve();
+			}, 3000);
+			proc.once('exit', () => {
+				clearTimeout(timeout);
+				resolve();
+			});
 		});
-	});
+	} catch (err) {
+		throw new Error(`Failed to shutdown process: ${String(err)}`);
+	}
 };
 
 app.whenReady().then(async () => {
-	const workspaceRoot = path.resolve(app.getAppPath(), '..', '..');
-	const servicesApiPath = path.join(workspaceRoot, 'services', 'api');
-	const servicesOcrPath = path.join(workspaceRoot, 'services', 'ocr-service');
+	try {
+		const workspaceRoot = path.resolve(app.getAppPath(), '..', '..');
+		const servicesApiPath = path.join(workspaceRoot, 'services', 'api');
+		const servicesOcrPath = path.join(workspaceRoot, 'services', 'ocr-service');
 
-	apiProcess = startService('API', 'uvicorn', ['main:app', '--port', String(API_PORT)], servicesApiPath);
-	ocrProcess = startService('OCR', 'uvicorn', ['main:app', '--port', String(OCR_PORT)], servicesOcrPath);
+		apiProcess = startService(
+			'API',
+			'uvicorn',
+			['main:app', '--port', String(API_PORT)],
+			servicesApiPath,
+			API_PORT
+		);
+		ocrProcess = startService(
+			'OCR',
+			'uvicorn',
+			['main:app', '--port', String(OCR_PORT)],
+			servicesOcrPath,
+			OCR_PORT
+		);
 
-	const ocrNoticeTimer = setTimeout(() => {
-		new Notification({
-			title: 'OCR service starting',
-			body: 'The OCR service is still warming up.',
-		}).show();
-	}, 10000);
+		const ocrNoticeTimer = setTimeout(() => {
+			new Notification({
+				title: 'OCR service starting',
+				body: 'The OCR service is still warming up.',
+			}).show();
+		}, 10000);
 
-	await Promise.all([pollHealth(API_PORT), pollHealth(OCR_PORT)]).finally(() => {
-		clearTimeout(ocrNoticeTimer);
-	});
+		await Promise.all([pollHealth(API_PORT), pollHealth(OCR_PORT)]).finally(() => {
+			clearTimeout(ocrNoticeTimer);
+		});
 
-	mainWindow = createWindow();
-	buildTray(mainWindow);
+		workbookService = new WorkbookService();
+		const chatService = new ChatService();
+		const extractionService = new ExtractionService();
 
-	workbookService = new WorkbookService();
-	const chatService = new ChatService();
-	const extractionService = new ExtractionService();
+		registerIpcHandlers({
+			chatService,
+			extractionService,
+			workbookService,
+		});
 
-	registerIpcHandlers({
-		chatService,
-		extractionService,
-		workbookService,
-	});
-
-	const localModelClient = new LocalModelClient();
-	setImmediate(() => {
-		localModelClient.generate('hello').catch(() => undefined);
-	});
+		const localModelClient = new LocalModelClient();
+		mainWindow = createWindow(() => {
+			setImmediate(() => {
+				localModelClient.generate('hello').catch(() => undefined);
+			});
+		});
+		buildTray(mainWindow);
+	} catch (err) {
+		console.error(`App startup failed: ${String(err)}`);
+		app.quit();
+	}
 });
 
 app.on('before-quit', async () => {

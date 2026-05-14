@@ -1,5 +1,5 @@
 import { AlertTriangle, ArrowRight, Check, EyeOff, MapPin, ShieldCheck } from 'lucide-react';
-import type { FlaggedCell } from '@codex-excel/shared-types';
+import type { FlaggedCell } from '@excellence/shared-types';
 
 interface FlaggedCellEditorProps {
   flaggedCells: FlaggedCell[];

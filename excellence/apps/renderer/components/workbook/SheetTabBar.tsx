@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight, FileSpreadsheet, Table } from 'lucide-react';
-import type { SheetInfo } from '@codex-excel/shared-types';
+import type { SheetInfo } from '@excellence/shared-types';
 
 interface SheetTabBarProps {
   sheets: SheetInfo[];

@@ -6,9 +6,9 @@ import type {
   IExtractionService,
   IWorkbookService,
   WorkbookInfo,
-} from '@codex-excel/shared-types';
-import type { IpcChannel, IpcResponse } from '@codex-excel/shared-types';
-import type { ExtractionResult, TableModel } from '@excel-ai-platform/extraction-core';
+} from '@excellence/shared-types';
+import type { IpcChannel, IpcResponse } from '@excellence/shared-types';
+import type { ExtractionResult, TableModel } from '@excellence/extraction-core';
 import {
   createMockChatResponse,
   createMockExtractionResult,
@@ -60,41 +60,73 @@ const createMockBridge = (): IChatService &
   IExtractionService &
   IWorkbookService & { on: ElectronAPI['on'] } => ({
   send: async (prompt: string) => {
-    await delay(600);
-    return createMockChatResponse({ prompt });
+    try {
+      await delay(600);
+      return createMockChatResponse({ prompt });
+    } catch (err) {
+      throw new Error(`Mock chat failed: ${String(err)}`);
+    }
   },
   fromImage: async (base64: string, mimeType: string) => {
-    await delay(2000);
-    return createMockExtractionResult('ocr', { base64, mimeType });
+    try {
+      await delay(2200);
+      return createMockExtractionResult('ocr', { base64, mimeType });
+    } catch (err) {
+      throw new Error(`Mock image extraction failed: ${String(err)}`);
+    }
   },
   fromUrl: async (url: string, hint?: string) => {
-    await delay(2200);
-    return createMockExtractionResult('cheerio', { url, hint });
+    try {
+      await delay(2400);
+      return createMockExtractionResult('cheerio', { url, hint });
+    } catch (err) {
+      throw new Error(`Mock URL extraction failed: ${String(err)}`);
+    }
   },
   fromText: async (content: string) => {
-    await delay(1800);
-    return createMockExtractionResult('text', { content });
+    try {
+      await delay(2100);
+      return createMockExtractionResult('text', { content });
+    } catch (err) {
+      throw new Error(`Mock text extraction failed: ${String(err)}`);
+    }
   },
   load: async (filePath: string) => {
-    await delay(500);
-    return createMockWorkbookInfo(filePath);
+    try {
+      await delay(500);
+      return createMockWorkbookInfo(filePath);
+    } catch (err) {
+      throw new Error(`Mock workbook load failed: ${String(err)}`);
+    }
   },
   commit: async (tableModel: TableModel) => {
-    await delay(800);
-    const colLetter = String.fromCharCode(64 + tableModel.headers.length);
-    const lastRow = tableModel.rows.length + 1;
-    return {
-      range: `A1:${colLetter}${lastRow}`,
-      sheetName: tableModel.sheetName,
-      rowsWritten: tableModel.rows.length,
-    };
+    try {
+      await delay(800);
+      const colLetter = String.fromCharCode(64 + tableModel.headers.length);
+      const lastRow = tableModel.rows.length + 1;
+      return {
+        range: `A1:${colLetter}${lastRow}`,
+        sheetName: tableModel.sheetName,
+        rowsWritten: tableModel.rows.length,
+      };
+    } catch (err) {
+      throw new Error(`Mock workbook commit failed: ${String(err)}`);
+    }
   },
   rollback: async () => {
-    await delay(300);
+    try {
+      await delay(300);
+    } catch (err) {
+      throw new Error(`Mock workbook rollback failed: ${String(err)}`);
+    }
   },
   snapshot: async () => {
-    await delay(300);
-    return 'C:/Users/You/Documents/Workbook_Snapshot.xlsx';
+    try {
+      await delay(300);
+      return 'C:/Users/You/Documents/Workbook_Snapshot.xlsx';
+    } catch (err) {
+      throw new Error(`Mock workbook snapshot failed: ${String(err)}`);
+    }
   },
   on: () => () => undefined,
 });
@@ -106,19 +138,62 @@ export function useIPCBridge():
   return useMemo(() => {
     if (isElectron && window.electronAPI) {
       return {
-        send: async (prompt: string) => unwrap(await window.electronAPI.chat.send(prompt)),
-        fromImage: async (base64: string, mimeType: string) =>
-          unwrap(await window.electronAPI.extract.fromImage(base64, mimeType)),
-        fromUrl: async (url: string, hint?: string) =>
-          unwrap(await window.electronAPI.extract.fromUrl(url, hint)),
-        fromText: async (content: string) =>
-          unwrap(await window.electronAPI.extract.fromText(content)),
-        load: async (filePath: string) =>
-          unwrap(await window.electronAPI.workbook.load(filePath)),
-        commit: async (tableModel: TableModel) =>
-          unwrap(await window.electronAPI.workbook.commit(tableModel)),
-        rollback: async () => unwrap(await window.electronAPI.workbook.rollback()),
-        snapshot: async () => unwrap(await window.electronAPI.workbook.snapshot()),
+      send: async (prompt: string) => {
+        try {
+          return unwrap(await window.electronAPI.chat.send(prompt));
+        } catch (err) {
+          throw new Error(`Chat IPC failed: ${String(err)}`);
+        }
+      },
+      fromImage: async (base64: string, mimeType: string) => {
+        try {
+          return unwrap(await window.electronAPI.extract.fromImage(base64, mimeType));
+        } catch (err) {
+          throw new Error(`Image IPC failed: ${String(err)}`);
+        }
+      },
+      fromUrl: async (url: string, hint?: string) => {
+        try {
+          return unwrap(await window.electronAPI.extract.fromUrl(url, hint));
+        } catch (err) {
+          throw new Error(`URL IPC failed: ${String(err)}`);
+        }
+      },
+      fromText: async (content: string) => {
+        try {
+          return unwrap(await window.electronAPI.extract.fromText(content));
+        } catch (err) {
+          throw new Error(`Text IPC failed: ${String(err)}`);
+        }
+      },
+      load: async (filePath: string) => {
+        try {
+          return unwrap(await window.electronAPI.workbook.load(filePath));
+        } catch (err) {
+          throw new Error(`Workbook load IPC failed: ${String(err)}`);
+        }
+      },
+      commit: async (tableModel: TableModel) => {
+        try {
+          return unwrap(await window.electronAPI.workbook.commit(tableModel));
+        } catch (err) {
+          throw new Error(`Workbook commit IPC failed: ${String(err)}`);
+        }
+      },
+      rollback: async () => {
+        try {
+          return unwrap(await window.electronAPI.workbook.rollback());
+        } catch (err) {
+          throw new Error(`Workbook rollback IPC failed: ${String(err)}`);
+        }
+      },
+      snapshot: async () => {
+        try {
+          return unwrap(await window.electronAPI.workbook.snapshot());
+        } catch (err) {
+          throw new Error(`Workbook snapshot IPC failed: ${String(err)}`);
+        }
+      },
         on: window.electronAPI.on,
       };
     }

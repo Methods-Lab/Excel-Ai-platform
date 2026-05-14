@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { WorkbookInfo } from '@codex-excel/shared-types';
+import type { WorkbookInfo } from '@excellence/shared-types';
 import { useWorkbookStore } from '../stores/workbookStore';
 import { useIPCBridge } from './useIPCBridge';
 

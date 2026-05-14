@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FileImage, FileText, Globe, Type, X } from 'lucide-react';
-import type { ExtractionResult } from '@codex-excel/shared-types';
+import type { ExtractionResult } from '@excellence/shared-types';
 import { useExtraction } from '../../hooks/useExtraction';
 import { useWorkbook } from '../../hooks/useWorkbook';
 import { useExtractionStore } from '../../stores/extractionStore';

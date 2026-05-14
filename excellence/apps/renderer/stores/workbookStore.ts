@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { SheetInfo, TableModel, WorkbookInfo } from '@codex-excel/shared-types';
+import type { SheetInfo, TableModel, WorkbookInfo } from '@excellence/shared-types';
 
 interface SheetState extends SheetInfo {
   tables: TableModel[];

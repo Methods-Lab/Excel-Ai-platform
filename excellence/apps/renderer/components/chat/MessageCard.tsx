@@ -1,5 +1,5 @@
 import { Bot, User } from 'lucide-react';
-import type { ChatMessage, ExtractionResult } from '@codex-excel/shared-types';
+import type { ChatMessage, ExtractionResult } from '@excellence/shared-types';
 import { TablePreviewCard } from './TablePreviewCard';
 
 interface MessageCardProps {

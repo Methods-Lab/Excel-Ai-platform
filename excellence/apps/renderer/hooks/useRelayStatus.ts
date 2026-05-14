@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { IpcChannel, type IpcResponse } from '@codex-excel/shared-types';
+import { IpcChannel, type IpcResponse } from '@excellence/shared-types';
 import { useIPCBridge } from './useIPCBridge';
 
 export function useRelayStatus() {

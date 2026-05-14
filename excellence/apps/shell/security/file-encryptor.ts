@@ -14,6 +14,8 @@ export const encryptFile = async (src: string, dest: string): Promise<void> => {
 		const authTag = cipher.getAuthTag();
 		const payload = Buffer.concat([iv, authTag, ciphertext]);
 		await fs.writeFile(dest, payload);
+	} catch (err) {
+		throw new Error(`encryptFile failed: ${String(err)}`);
 	} finally {
 		await fs.rm(src, { force: true });
 	}
@@ -32,6 +34,8 @@ export const decryptFile = async (src: string, dest: string): Promise<void> => {
 			decipher.final(),
 		]);
 		await fs.writeFile(dest, plaintext);
+	} catch (err) {
+		throw new Error(`decryptFile failed: ${String(err)}`);
 	} finally {
 		await fs.rm(src, { force: true });
 	}

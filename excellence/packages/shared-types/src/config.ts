@@ -2,6 +2,9 @@ export const API_PORT = 8745 as const;
 export const OCR_PORT = 5555 as const;
 export const API_BASE_URL = `http://localhost:${API_PORT}` as const;
 export const OCR_BASE_URL = `http://localhost:${OCR_PORT}` as const;
+export const getRelayPort = (): number =>
+  Math.floor(10000 + Math.random() * 50000);
+export const RELAY_PORT = getRelayPort;
 
 export type AppEnv = 'development' | 'production';
 

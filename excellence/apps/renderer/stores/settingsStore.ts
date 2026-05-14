@@ -4,7 +4,7 @@ import {
   DEFAULT_RENDERER_SETTINGS,
   type RendererSettings,
   type Theme,
-} from '@codex-excel/shared-types';
+} from '@excellence/shared-types';
 
 interface SettingsActions {
   updateSetting: <K extends keyof RendererSettings>(key: K, value: RendererSettings[K]) => void;

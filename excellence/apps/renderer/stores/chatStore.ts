@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { ChatMessage } from '@codex-excel/shared-types';
+import type { ChatMessage } from '@excellence/shared-types';
 
 export interface ChatSession {
   id: string;

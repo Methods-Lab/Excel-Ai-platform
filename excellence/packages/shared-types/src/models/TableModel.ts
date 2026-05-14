@@ -4,7 +4,7 @@ export type {
   FlaggedCell,
   InferredType,
   TableModel,
-} from '@excel-ai-platform/extraction-core';
+} from '@excellence/extraction-core';
 
 export type {
   DuplicateDetectionResult,
@@ -13,7 +13,7 @@ export type {
   SumReconciliationResult,
   ValidationIssue,
   ValidationResult,
-} from '@excel-ai-platform/extraction-core';
+} from '@excellence/extraction-core';
 
 export type {
   ExtractionError,
@@ -26,6 +26,6 @@ export type {
   MixedInput,
   TextInput,
   UrlInput,
-} from '@excel-ai-platform/extraction-core';
+} from '@excellence/extraction-core';
 
-export type { ExtractionResult } from '@excel-ai-platform/extraction-core';
+export type { ExtractionResult } from '@excellence/extraction-core';

@@ -1,5 +1,5 @@
-import type { ChatResponse, WorkbookInfo } from '@codex-excel/shared-types';
-import type { ExtractionResult, TableModel } from '@excel-ai-platform/extraction-core';
+import type { ChatResponse, WorkbookInfo } from '@excellence/shared-types';
+import type { ExtractionResult, TableModel } from '@excellence/extraction-core';
 
 const headers: TableModel['headers'] = [
   { name: 'Department', inferredType: 'text' },

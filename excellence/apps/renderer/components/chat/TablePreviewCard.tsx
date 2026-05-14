@@ -1,5 +1,5 @@
 import { AlertTriangle, ArrowRight, CheckCircle, FileSpreadsheet } from 'lucide-react';
-import type { ExtractionResult } from '@codex-excel/shared-types';
+import type { ExtractionResult } from '@excellence/shared-types';
 import { useExtractionStore } from '../../stores/extractionStore';
 import { ConfidenceBadge } from '../preview/ConfidenceBadge';
 

@@ -3,7 +3,7 @@ import type {
   ExtractionInput,
   ExtractionResult,
   InputModality,
-} from '@codex-excel/shared-types';
+} from '@excellence/shared-types';
 import { useExtractionStore } from '../stores/extractionStore';
 import { useWorkbookStore } from '../stores/workbookStore';
 import { useIPCBridge } from './useIPCBridge';

@@ -1,12 +1,12 @@
 {
-  "name": "@codex-excel/shared-types",
+  "name": "@excellence/shared-types",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "dependencies": {
-    "@excel-ai-platform/extraction-core": "file:../extraction-core",
+    "@excellence/extraction-core": "file:../extraction-core",
     "zod": "^3.23.8"
   }
 }

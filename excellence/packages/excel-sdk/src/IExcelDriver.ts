@@ -1,4 +1,4 @@
-import type { TableModel } from '@excel-ai-platform/extraction-core';
+import type { TableModel } from '@excellence/extraction-core';
 
 export interface WorkbookInfo {
   filePath: string;

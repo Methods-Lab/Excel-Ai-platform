@@ -1,5 +1,5 @@
 // 🔲 Dev 3 implements — table insertion logic
-import type { TableModel } from '@excel-ai-platform/extraction-core';
+import type { TableModel } from '@excellence/extraction-core';
 
 export class TableInserter {
 	insertTable(_model: TableModel, _sheetName: string, _startCell: string): void {

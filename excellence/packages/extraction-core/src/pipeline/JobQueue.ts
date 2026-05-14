@@ -14,9 +14,14 @@ export class JobQueue {
 	}
 
 	async enqueue(job: ExtractionJob): Promise<ExtractionResult> {
-		this.onProgress?.(job.id, 10, 'Queued');
-		const result = await this.pipeline.process(job);
-		this.onProgress?.(job.id, 100, 'Complete');
-		return result;
+		try {
+			this.onProgress?.(job.id, 10, 'Queued');
+			const result = await this.pipeline.process(job);
+			this.onProgress?.(job.id, 100, 'Complete');
+			return result;
+		} catch (err) {
+			this.onProgress?.(job.id, 100, 'Failed');
+			throw new Error(`Extraction job failed: ${String(err)}`);
+		}
 	}
 }

@@ -1,5 +1,5 @@
 import { Table } from 'lucide-react';
-import type { TableModel } from '@codex-excel/shared-types';
+import type { TableModel } from '@excellence/shared-types';
 
 interface TableSelectorProps {
   tables: TableModel[];

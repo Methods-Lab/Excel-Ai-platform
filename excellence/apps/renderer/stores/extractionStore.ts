@@ -4,7 +4,7 @@ import type {
   ExtractionJob,
   ExtractionResult,
   InputModality,
-} from '@codex-excel/shared-types';
+} from '@excellence/shared-types';
 
 interface ExtractionJobView extends ExtractionJob {
   progress: number;

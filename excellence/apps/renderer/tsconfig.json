@@ -18,7 +18,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@codex-excel/shared-types": ["../../packages/shared-types/src/index.ts"]
+      "@excellence/shared-types": ["../../packages/shared-types/src/index.ts"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

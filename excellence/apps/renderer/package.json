@@ -1,5 +1,5 @@
 {
-  "name": "@excel-ai-platform/renderer",
+  "name": "@excellence/renderer",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -9,7 +9,7 @@
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
-    "@codex-excel/shared-types": "file:../../packages/shared-types",
+    "@excellence/shared-types": "file:../../packages/shared-types",
     "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-toast": "^1.1.5",

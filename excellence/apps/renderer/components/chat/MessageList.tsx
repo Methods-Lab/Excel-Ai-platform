@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { ChatMessage } from '@codex-excel/shared-types';
+import type { ChatMessage } from '@excellence/shared-types';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
 import { MessageCard } from './MessageCard';
 

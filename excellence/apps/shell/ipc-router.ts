@@ -1,7 +1,8 @@
 import { dialog, ipcMain } from 'electron';
 import { z } from 'zod';
-import { API_BASE_URL } from '@codex-excel/shared-types/config';
-import { IpcChannel, type IpcResponse } from '@codex-excel/shared-types';
+import { API_BASE_URL } from '@excellence/shared-types/config';
+import { IpcChannel, type IpcResponse } from '@excellence/shared-types';
+import { ConsentDenied, requestConsent } from './security/consent-gate';
 import type {
 	ChatResponse,
 	CommitResult,
@@ -9,8 +10,8 @@ import type {
 	IExtractionService,
 	IWorkbookService,
 	WorkbookInfo,
-} from '@codex-excel/shared-types';
-import type { ExtractionResult, TableModel } from '@excel-ai-platform/extraction-core';
+} from '@excellence/shared-types';
+import type { ExtractionResult, TableModel } from '@excellence/extraction-core';
 
 interface Services {
 	chatService: IChatService;
@@ -371,22 +372,20 @@ export const registerIpcHandlers = (services: Services): void => {
 
 		try {
 			const { requestId, data } = parsed.data;
-			const result = await dialog.showMessageBox({
-				type: 'question',
-				buttons: ['Yes', 'No'],
-				defaultId: 0,
-				cancelId: 1,
-				title: 'Consent Required',
-				message: data.action,
-				detail: data.detail,
-				noLink: true,
-			});
-			const granted = result.response === 0;
+			const granted = await requestConsent(data.action, data.detail);
 			logDuration(IpcChannel.AI_CONSENT_REQUEST, requestId, start);
 			return { requestId, success: true, data: { granted } };
 		} catch (err) {
 			const requestId = parsed.data.requestId;
 			logDuration(IpcChannel.AI_CONSENT_REQUEST, requestId, start);
+			if (err instanceof ConsentDenied) {
+				return errorResponse<{ granted: boolean }>(
+					requestId,
+					'CONSENT_DENIED',
+					err.message,
+					true
+				);
+			}
 			return errorResponse<{ granted: boolean }>(
 				requestId,
 				'CONSENT_ERROR',
@@ -412,9 +411,20 @@ export const registerIpcHandlers = (services: Services): void => {
 				true
 			);
 		}
-		const { requestId, data } = parsed.data;
-		logDuration(IpcChannel.SETTINGS_SAVE, requestId, start);
-		return { requestId, success: true, data };
+		try {
+			const { requestId, data } = parsed.data;
+			logDuration(IpcChannel.SETTINGS_SAVE, requestId, start);
+			return { requestId, success: true, data };
+		} catch (err) {
+			const requestId = parsed.data.requestId;
+			logDuration(IpcChannel.SETTINGS_SAVE, requestId, start);
+			return errorResponse<Record<string, unknown>>(
+				requestId,
+				'SETTINGS_SAVE_ERROR',
+				String(err),
+				true
+			);
+		}
 	});
 
 	ipcMain.handle(IpcChannel.SETTINGS_LOAD, async (_event, rawPayload: unknown) => {
@@ -433,9 +443,20 @@ export const registerIpcHandlers = (services: Services): void => {
 				true
 			);
 		}
-		const { requestId } = parsed.data;
-		logDuration(IpcChannel.SETTINGS_LOAD, requestId, start);
-		return { requestId, success: true, data: {} };
+		try {
+			const { requestId } = parsed.data;
+			logDuration(IpcChannel.SETTINGS_LOAD, requestId, start);
+			return { requestId, success: true, data: {} };
+		} catch (err) {
+			const requestId = parsed.data.requestId;
+			logDuration(IpcChannel.SETTINGS_LOAD, requestId, start);
+			return errorResponse<Record<string, unknown>>(
+				requestId,
+				'SETTINGS_LOAD_ERROR',
+				String(err),
+				true
+			);
+		}
 	});
 
 	ipcMain.handle(IpcChannel.HEALTH_CHECK, async (_event, rawPayload: unknown) => {
@@ -454,9 +475,20 @@ export const registerIpcHandlers = (services: Services): void => {
 				true
 			);
 		}
-		const { requestId } = parsed.data;
-		logDuration(IpcChannel.HEALTH_CHECK, requestId, start);
-		return { requestId, success: true, data: { status: 'ok' } };
+		try {
+			const { requestId } = parsed.data;
+			logDuration(IpcChannel.HEALTH_CHECK, requestId, start);
+			return { requestId, success: true, data: { status: 'ok' } };
+		} catch (err) {
+			const requestId = parsed.data.requestId;
+			logDuration(IpcChannel.HEALTH_CHECK, requestId, start);
+			return errorResponse<{ status: string }>(
+				requestId,
+				'HEALTH_CHECK_ERROR',
+				String(err),
+				true
+			);
+		}
 	});
 
 	ipcMain.handle(IpcChannel.FILE_OPEN, async (_event, rawPayload: unknown) => {
@@ -551,13 +583,23 @@ export const registerIpcHandlers = (services: Services): void => {
 
 	for (const channel of eventOnlyChannels) {
 		ipcMain.handle(channel, async (_event, rawPayload: unknown) => {
-			const requestId = (rawPayload as { requestId?: string }).requestId ?? 'unknown';
-			return errorResponse<unknown>(
-				requestId,
-				'EVENT_ONLY',
-				'This channel is event-only.',
-				true
-			);
+			try {
+				const requestId =
+					(rawPayload as { requestId?: string }).requestId ?? 'unknown';
+				return errorResponse<unknown>(
+					requestId,
+					'EVENT_ONLY',
+					'This channel is event-only.',
+					true
+				);
+			} catch (err) {
+				return errorResponse<unknown>(
+					'unknown',
+					'EVENT_ONLY_ERROR',
+					String(err),
+					true
+				);
+			}
 		});
 	}
 };

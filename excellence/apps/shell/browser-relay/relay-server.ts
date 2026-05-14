@@ -1,7 +1,8 @@
 import { BrowserWindow } from 'electron';
 import { randomUUID } from 'node:crypto';
 import { WebSocketServer } from 'ws';
-import { IpcChannel, type IpcResponse } from '@codex-excel/shared-types';
+import { IpcChannel, type IpcResponse } from '@excellence/shared-types';
+import type { IExtractionService } from '@excellence/shared-types';
 import type { RelayCommand, RelayMessage, RelayStatus } from './relay-types';
 
 const isLocalhost = (address?: string | null): boolean => {
@@ -18,6 +19,7 @@ export class RelayServer {
 	private port = 0;
 	private token = randomUUID();
 	private status: RelayStatus = 'idle';
+	private onHtml?: (html: string) => Promise<void> | void;
 
 	getPort(): number {
 		return this.port;
@@ -27,8 +29,17 @@ export class RelayServer {
 		return this.token;
 	}
 
+	bindExtractionService(service: IExtractionService): void {
+		this.onHtml = async (html: string) => {
+			await service.fromText(html);
+		};
+	}
+
 	start(onHtml?: (html: string) => void): void {
 		if (this.wss) return;
+		if (onHtml) {
+			this.onHtml = onHtml;
+		}
 		this.wss = new WebSocketServer({ port: 0 });
 		this.wss.on('listening', () => {
 			const address = this.wss?.address();
@@ -56,8 +67,9 @@ export class RelayServer {
 					const message = JSON.parse(String(data)) as RelayMessage;
 					if (message.type === 'html' && message.html) {
 						this.updateStatus('processing');
-						onHtml?.(message.html);
-						this.updateStatus('connected');
+						Promise.resolve(this.onHtml?.(message.html))
+							.then(() => this.updateStatus('connected'))
+							.catch(() => this.updateStatus('error'));
 					}
 				} catch {
 					this.updateStatus('error');

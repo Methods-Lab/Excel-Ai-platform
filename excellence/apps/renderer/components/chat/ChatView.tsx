@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import type { ExtractionResult } from '@codex-excel/shared-types';
+import type { ExtractionResult } from '@excellence/shared-types';
 import { useChat } from '../../hooks/useChat';
 import { useExtraction } from '../../hooks/useExtraction';
 import { useToast } from '../shared/Toast';

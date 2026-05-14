@@ -69,15 +69,19 @@ const buildValidationResult = (jobId: string): ValidationResult => ({
 
 export class ExtractionPipeline implements IExtractionPipeline {
 	async process(job: ExtractionJob): Promise<ExtractionResult> {
-		const tableModel = buildTableModel(job);
-		const validationResult = buildValidationResult(job.id);
-		return {
-			jobId: job.id,
-			tableModel,
-			validationResult,
-			overallConfidence: 0.92,
-			warnings: [],
-			extractionMethod: buildExtractionMethod(job.input),
-		};
+		try {
+			const tableModel = buildTableModel(job);
+			const validationResult = buildValidationResult(job.id);
+			return {
+				jobId: job.id,
+				tableModel,
+				validationResult,
+				overallConfidence: 0.92,
+				warnings: [],
+				extractionMethod: buildExtractionMethod(job.input),
+			};
+		} catch (err) {
+			throw new Error(`Extraction pipeline failed: ${String(err)}`);
+		}
 	}
 }

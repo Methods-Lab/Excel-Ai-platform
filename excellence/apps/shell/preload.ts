@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { IpcChannel, IpcPayload, IpcResponse } from '@codex-excel/shared-types';
-import { IpcChannel as Channels } from '@codex-excel/shared-types';
+import type { IpcChannel, IpcPayload, IpcResponse } from '@excellence/shared-types';
+import { IpcChannel as Channels } from '@excellence/shared-types';
 
 const buildPayload = <T>(data: T): IpcPayload<T> => ({
 	requestId: crypto.randomUUID(),

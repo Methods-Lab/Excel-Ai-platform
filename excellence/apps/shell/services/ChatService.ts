@@ -1,4 +1,4 @@
-import type { ChatResponse, IChatService } from '@codex-excel/shared-types';
+import type { ChatResponse, IChatService } from '@excellence/shared-types';
 import { AIRouter } from '../local-ai/ai-router';
 
 export class ChatService implements IChatService {

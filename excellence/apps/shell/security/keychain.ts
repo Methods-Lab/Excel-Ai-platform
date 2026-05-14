@@ -3,13 +3,25 @@ import keytar from 'keytar';
 const SERVICE_NAME = 'Excellence';
 
 export const setKey = async (account: string, value: string): Promise<void> => {
-	await keytar.setPassword(SERVICE_NAME, account, value);
+	try {
+		await keytar.setPassword(SERVICE_NAME, account, value);
+	} catch (err) {
+		throw new Error(`Failed to set key for ${account}: ${String(err)}`);
+	}
 };
 
 export const getKey = async (account: string): Promise<string | null> => {
-	return keytar.getPassword(SERVICE_NAME, account);
+	try {
+		return await keytar.getPassword(SERVICE_NAME, account);
+	} catch (err) {
+		throw new Error(`Failed to get key for ${account}: ${String(err)}`);
+	}
 };
 
 export const deleteKey = async (account: string): Promise<boolean> => {
-	return keytar.deletePassword(SERVICE_NAME, account);
+	try {
+		return await keytar.deletePassword(SERVICE_NAME, account);
+	} catch (err) {
+		throw new Error(`Failed to delete key for ${account}: ${String(err)}`);
+	}
 };

@@ -1,5 +1,5 @@
 import { AlertTriangle, Check } from 'lucide-react';
-import type { FlaggedCell, RowData, TableModel } from '@codex-excel/shared-types';
+import type { FlaggedCell, RowData, TableModel } from '@excellence/shared-types';
 
 interface TableGridProps {
   table: TableModel;

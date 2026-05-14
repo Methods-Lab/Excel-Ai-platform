@@ -1,5 +1,5 @@
-import type { TableModel } from '@excel-ai-platform/extraction-core';
-import type { ExtractionResult } from '@excel-ai-platform/extraction-core';
+import type { TableModel } from '@excellence/extraction-core';
+import type { ExtractionResult } from '@excellence/extraction-core';
 
 export interface ChatResponse {
   message: string;

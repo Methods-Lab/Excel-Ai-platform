@@ -16,7 +16,12 @@ async def start_extraction(job: ExtractionJob) -> ExtractionJob:
 
 @router.get("/{job_id}", response_model=ExtractionJob)
 async def get_extraction(job_id: str) -> ExtractionJob:
-    job = job_service.get(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return job
+    try:
+        job = job_service.get(job_id)
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        return job
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=str(exc)) from exc

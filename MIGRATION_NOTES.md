@@ -47,14 +47,14 @@ From `excellence/`:
 ```bash
 npm install
 npm run build
-npm run dev -w @excel-ai-platform/renderer
+npm run dev -w @excellence/renderer
 ```
 
 For browser-only frontend testing with mock IPC:
 
 ```bash
 $env:VITE_ENABLE_MOCK_IPC="true"
-npm run dev -w @excel-ai-platform/renderer
+npm run dev -w @excellence/renderer
 ```
 
 Docker:

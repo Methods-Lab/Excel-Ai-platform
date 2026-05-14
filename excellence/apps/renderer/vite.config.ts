@@ -7,6 +7,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    target: 'chrome120',
+  },
   server: {
     host: '0.0.0.0',
     port: 5173,
@@ -15,10 +18,15 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 4173,
   },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'chrome120',
+    },
+  },
   resolve: {
     alias: {
       '@': __dirname,
-      '@codex-excel/shared-types': path.resolve(
+      '@excellence/shared-types': path.resolve(
         __dirname,
         '../../packages/shared-types/src/index.ts'
       ),
