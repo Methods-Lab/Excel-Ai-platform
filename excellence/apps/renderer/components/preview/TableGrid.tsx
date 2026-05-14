@@ -29,6 +29,21 @@ export function TableGrid({
   onCellClick,
   onCellChange,
 }: TableGridProps) {
+  // Defensive check for malformed table data
+  if (!Array.isArray(table.columns) || !Array.isArray(table.rows)) {
+    return (
+      <div className="flex items-center justify-center rounded-lg border border-slate-200 p-8 dark:border-slate-800">
+        <div className="text-center">
+          <AlertTriangle className="mx-auto h-8 w-8 text-red-500" />
+          <h3 className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">Invalid Table Data</h3>
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+            The table structure is malformed and cannot be displayed.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-auto rounded-lg border border-slate-200 dark:border-slate-800">
       <table className="w-full border-collapse text-sm">

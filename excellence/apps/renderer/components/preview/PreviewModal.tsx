@@ -48,6 +48,37 @@ export function PreviewModal() {
   if (!previewResult) return null;
 
   const { table, flaggedCells } = previewResult;
+
+  // Defensive check for malformed table data
+  if (!table || !Array.isArray(table.rows) || !Array.isArray(table.columns)) {
+    return (
+      <section className="flex h-full flex-col bg-white dark:bg-slate-950">
+        <header className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-600 dark:bg-red-900 dark:text-red-300">
+              Error
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={dismissPreview}
+            aria-label="Dismiss preview"
+            className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </header>
+        <div className="flex flex-1 items-center justify-center p-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Extraction Error</h3>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+              The extracted data is malformed. Please try uploading again or contact support.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
   const SourceIcon = sourceMeta.Icon;
 
   const syncPreview = (next: ExtractionResult) => {

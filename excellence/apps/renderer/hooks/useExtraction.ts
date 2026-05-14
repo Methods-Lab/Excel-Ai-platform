@@ -27,6 +27,27 @@ function fileToBase64(file: File) {
   });
 }
 
+function normalizeExtractionResult(result: ExtractionResult): ExtractionResult {
+  const table = result.table ?? {
+    id: 'normalized-table',
+    columns: [],
+    rows: [],
+    sheetName: 'Sheet1',
+    tableName: 'Normalized table',
+  };
+
+  return {
+    ...result,
+    table: {
+      ...table,
+      columns: table.columns ?? [],
+      rows: table.rows ?? [],
+    },
+    flaggedCells: result.flaggedCells ?? [],
+    overallConfidence: result.overallConfidence ?? 0,
+  };
+}
+
 export function useExtraction() {
   const {
     currentJob,
@@ -69,10 +90,11 @@ export function useExtraction() {
 
       try {
         const response = await request;
+        const normalized = normalizeExtractionResult(response);
         stopProgress();
         updateProgress(jobId, 100, 'Preview ready');
-        showPreview(jobId, response);
-        return response;
+        showPreview(jobId, normalized);
+        return normalized;
       } catch (caught) {
         stopProgress();
         const message = caught instanceof Error ? caught.message : 'Extraction failed.';
