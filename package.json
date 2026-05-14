@@ -1,0 +1,13 @@
+{
+  "name": "excel-ai-platform-api",
+  "version": "1.0.0",
+  "description": "API handlers for Vercel serverless functions",
+  "private": true,
+  "dependencies": {
+    "@google/generative-ai": "^0.3.0",
+    "@vercel/node": "^3.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
