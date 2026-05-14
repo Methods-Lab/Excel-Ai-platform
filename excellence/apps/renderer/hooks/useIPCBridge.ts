@@ -133,14 +133,14 @@ export function useIPCBridge() {
       try {
         console.info(`[ipc] http fallback channel=${channel} requestId=${requestId}`, payload);
 
-        // Extraction channels -> POST /ai/extract-table
+        // Extraction channels -> POST /api/extract-table
         if (
           channel === IPC_CHANNELS.EXTRACT_FROM_IMAGE ||
           channel === IPC_CHANNELS.EXTRACT_FROM_URL ||
           channel === IPC_CHANNELS.EXTRACT_FROM_TEXT ||
           channel === IPC_CHANNELS.EXTRACT_FROM_DOCUMENT
         ) {
-          const url = `${aiHost.replace(/\/$/, '')}/ai/extract-table`;
+          const url = `${aiHost.replace(/\/$/, '')}/extract-table`;
           const body = { ...(payload as object), requestId };
           const res = await fetch(url, {
             method: 'POST',
@@ -152,9 +152,9 @@ export function useIPCBridge() {
           return data;
         }
 
-        // Chat send -> POST /ai/query
+        // Chat send -> POST /api/query
         if (channel === IPC_CHANNELS.CHAT_SEND) {
-          const url = `${aiHost.replace(/\/$/, '')}/ai/query`;
+          const url = `${aiHost.replace(/\/$/, '')}/query`;
           const body = { ...(payload as object), requestId };
           const res = await fetch(url, {
             method: 'POST',
