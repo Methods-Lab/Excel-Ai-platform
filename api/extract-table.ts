@@ -13,28 +13,32 @@ const model = client.getGenerativeModel({ model: GEMINI_MODEL });
 
 async function extractTableFromPrompt(prompt: string): Promise<any> {
   try {
+    console.log('Starting AI extraction with prompt:', prompt.substring(0, 100));
+    
     const response = await model.generateContent({
       contents: [
         {
           role: 'user',
           parts: [
             {
-              text: `Extract table data from the following prompt. Return a JSON object with:
+              text: `You are a table extraction AI. Based on the user's request, create a structured table.
+
+User request: ${prompt}
+
+Return ONLY valid JSON (no markdown, no code blocks) with this exact structure:
 {
   "table": {
     "id": "extracted-table",
     "tableName": "Extracted Table",
     "sheetName": "Sheet1",
-    "columns": [{"name": "Column Name", "type": "text"}],
-    "rows": [[{"value": "cell value", "confidence": 95, "flagged": false}]]
+    "columns": [{"name": "Column 1", "type": "text"}, {"name": "Column 2", "type": "text"}],
+    "rows": [[{"value": "row1col1", "confidence": 90, "flagged": false}, {"value": "row1col2", "confidence": 90, "flagged": false}]]
   },
-  "overallConfidence": 85,
+  "overallConfidence": 90,
   "flaggedCells": []
 }
 
-Prompt: ${prompt}
-
-Return ONLY valid JSON, no markdown code blocks.`,
+Make sure the table content directly matches what the user requested.`,
             },
           ],
         },
@@ -42,32 +46,20 @@ Return ONLY valid JSON, no markdown code blocks.`,
     });
 
     const text = response.response.text();
+    console.log('AI Response:', text.substring(0, 200));
+    
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON found in response');
+    if (!jsonMatch) {
+      console.error('No JSON found in response:', text);
+      throw new Error('No JSON found in response');
+    }
 
     const result = JSON.parse(jsonMatch[0]);
+    console.log('Parsed result:', result);
     return result;
   } catch (error) {
     console.error('AI extraction error:', error);
-    return {
-      table: {
-        id: 'mock-table',
-        tableName: 'Extracted Data',
-        sheetName: 'Sheet1',
-        columns: [
-          { name: 'Column A', type: 'text' },
-          { name: 'Column B', type: 'text' },
-        ],
-        rows: [
-          [
-            { value: 'Data extracted', confidence: 85, flagged: false },
-            { value: 'From prompt', confidence: 85, flagged: false },
-          ],
-        ],
-      },
-      overallConfidence: 85,
-      flaggedCells: [],
-    };
+    throw error;
   }
 }
 
@@ -101,10 +93,15 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       return res.status(400).json({ error: 'No extraction source provided' });
     }
 
+    console.log('Processing extraction with prompt:', extractionPrompt.substring(0, 100));
+    
     const result = await extractTableFromPrompt(extractionPrompt);
     return res.status(200).json(result);
   } catch (error) {
     console.error('Extract table error:', error);
-    return res.status(500).json({ error: 'Failed to extract table' });
+    return res.status(500).json({ 
+      error: 'Failed to extract table',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };
