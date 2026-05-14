@@ -60,7 +60,7 @@ export function useExtraction() {
     failJob,
     dismissPreview,
   } = useExtractionStore();
-  const { activeSheet, addTableToSheet } = useWorkbookStore();
+  const { activeSheet, addTableToSheet, recordCommit } = useWorkbookStore();
   const { invoke } = useIPCBridge();
 
   const trackProgress = useCallback(
@@ -143,7 +143,10 @@ export function useExtraction() {
   );
 
   const commitTable = useCallback(
-    async (targetSheet = activeSheet ?? previewResult?.table.sheetName ?? 'Sheet1') => {
+    async (
+      targetSheet = activeSheet ?? previewResult?.table.sheetName ?? 'Sheet1',
+      position: { row: number; col: number } = { row: 0, col: 0 }
+    ) => {
       if (!previewResult) {
         throw new Error('No preview result to commit.');
       }
@@ -151,12 +154,16 @@ export function useExtraction() {
       const response = await invoke(IPC_CHANNELS.TABLE_COMMIT, {
         sheetName: targetSheet,
         table: previewResult.table,
-        position: { row: 0, col: 0 },
+        position,
         overwriteExisting: false,
       });
 
       if (response.success) {
         addTableToSheet(targetSheet, previewResult.table);
+        // record last commit for undo support in the workbook store
+        try {
+          recordCommit(targetSheet, previewResult.table);
+        } catch {}
         if (currentJob) {
           commitResult(currentJob.id);
         }

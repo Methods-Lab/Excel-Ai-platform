@@ -109,15 +109,99 @@ export function useIPCBridge() {
       channel: C,
       payload: IPCRequestMap[C]
     ): Promise<IPCResponseMap[C]> => {
+      const requestId = crypto.randomUUID();
+
       if (isElectron && window.electronAPI) {
-        return window.electronAPI.invoke<IPCRequestMap[C], IPCResponseMap[C]>(channel, payload);
+        console.info(`[ipc] invoking electron channel=${channel} requestId=${requestId}`);
+        // Inject a tracing requestId into the payload for traceability in the shell.
+        // Avoid mutating original payload object.
+        const newPayload =
+          payload && typeof payload === 'object' && !(payload instanceof FormData)
+            ? { ...(payload as object), requestId }
+            : payload;
+        return window.electronAPI.invoke<IPCRequestMap[C], IPCResponseMap[C]>(channel, newPayload as any);
       }
 
       if (MOCK_IPC_ENABLED) {
+        console.info(`[ipc] mock invoke channel=${channel} requestId=${requestId}`);
         return invokeMock(channel, payload);
       }
 
-      throw new Error(shellNotReadyMessage);
+      // Browser (renderer) fallback: call local FastAPI endpoints for AI-related channels.
+      const aiHost = (import.meta.env.VITE_AI_HOST as string) || 'http://localhost:8745';
+
+      try {
+        console.info(`[ipc] http fallback channel=${channel} requestId=${requestId}`, payload);
+
+        // Extraction channels -> POST /ai/extract-table
+        if (
+          channel === IPC_CHANNELS.EXTRACT_FROM_IMAGE ||
+          channel === IPC_CHANNELS.EXTRACT_FROM_URL ||
+          channel === IPC_CHANNELS.EXTRACT_FROM_TEXT ||
+          channel === IPC_CHANNELS.EXTRACT_FROM_DOCUMENT
+        ) {
+          const url = `${aiHost.replace(/\/$/, '')}/ai/extract-table`;
+          const body = { ...(payload as object), requestId };
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          if (!res.ok) throw new Error(`AI extraction failed (${res.status})`);
+          const data = (await res.json()) as IPCResponseMap[C];
+          return data;
+        }
+
+        // Chat send -> POST /ai/query
+        if (channel === IPC_CHANNELS.CHAT_SEND) {
+          const url = `${aiHost.replace(/\/$/, '')}/ai/query`;
+          const body = { ...(payload as object), requestId };
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          if (!res.ok) throw new Error(`AI query failed (${res.status})`);
+          const data = (await res.json()) as IPCResponseMap[C];
+          return data;
+        }
+
+        // Table preview can be computed locally - return counts
+        if (channel === IPC_CHANNELS.TABLE_PREVIEW) {
+          const request = payload as any;
+          return {
+            rowCount: request.table?.rows?.length ?? 0,
+            colCount: request.table?.columns?.length ?? 0,
+          } as IPCResponseMap[C];
+        }
+
+        // Workbook and commit operations require a desktop shell - surface a helpful error
+        if (
+          channel === IPC_CHANNELS.WORKBOOK_OPEN_DIALOG ||
+          channel === IPC_CHANNELS.WORKBOOK_LOAD ||
+          channel === IPC_CHANNELS.WORKBOOK_SAVE ||
+          channel === IPC_CHANNELS.TABLE_COMMIT
+        ) {
+          throw new Error(
+            'Workbook operations are only available in the desktop application. Run the Electron app or enable mock IPC (VITE_ENABLE_MOCK_IPC=true) for local renderer dev.'
+          );
+        }
+
+        // Relay status fallback
+        if (channel === IPC_CHANNELS.RELAY_STATUS) {
+          return {
+            jobId: (payload as any).jobId,
+            status: 'processing',
+            progress: 50,
+            message: 'No relay service available in browser fallback',
+          } as IPCResponseMap[C];
+        }
+
+        throw new Error(`No http fallback implemented for channel: ${channel}`);
+      } catch (err) {
+        console.error(`[ipc] http fallback error channel=${channel} requestId=${requestId}`, err);
+        throw err;
+      }
     },
     [isElectron]
   );

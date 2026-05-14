@@ -8,6 +8,7 @@ interface TableGridProps {
   isEditMode: boolean;
   onCellClick: (row: number, col: number) => void;
   onCellChange: (row: number, col: number, value: string) => void;
+  onAcceptSuggestion?: (row: number, col: number, suggested: string) => void;
 }
 
 function formatCell(cell: RowData) {
@@ -28,6 +29,7 @@ export function TableGrid({
   isEditMode,
   onCellClick,
   onCellChange,
+  onAcceptSuggestion,
 }: TableGridProps) {
   // Defensive check for malformed table data
   if (!Array.isArray(table.columns) || !Array.isArray(table.rows)) {
@@ -77,14 +79,16 @@ export function TableGrid({
                 const flaggedIndex = isFlagged(flaggedCells, rowIndex, colIndex);
                 const flagged = flaggedIndex >= 0;
                 const selected = selectedFlaggedIndex === flaggedIndex;
+                const flag = flagged ? flaggedCells[flaggedIndex] : null;
 
                 return (
                   <td
                     key={`${rowIndex}-${colIndex}`}
                     onClick={() => onCellClick(rowIndex, colIndex)}
                     className={`border-b border-r border-slate-200 px-3 py-2 align-top dark:border-slate-800 ${
-                      flagged ? 'bg-red-50/70 dark:bg-red-950/20' : ''
+                      flagged ? 'bg-yellow-50 dark:bg-yellow-950/20' : ''
                     } ${selected ? 'ring-2 ring-blue-500 ring-inset' : ''}`}
+                    title={flag ? `${flag.reason} — suggested: ${flag.suggestedFix}` : undefined}
                   >
                     <div className="flex min-h-8 items-center gap-2">
                       {isEditMode ? (
@@ -94,12 +98,26 @@ export function TableGrid({
                           className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900"
                         />
                       ) : (
-                        <span className={flagged ? 'font-semibold text-red-700 dark:text-red-300' : ''}>
+                        <span className={flagged ? 'font-semibold text-amber-700 dark:text-amber-300' : ''}>
                           {formatCell(cell)}
                         </span>
                       )}
                       {flagged ? (
-                        <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 text-red-500" />
+                        <div className="flex items-center gap-1">
+                          <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 text-amber-500" />
+                          {flag?.suggestedFix !== undefined && onAcceptSuggestion ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onAcceptSuggestion(rowIndex, colIndex, String(flag.suggestedFix));
+                              }}
+                              className="ml-1 rounded bg-amber-100 px-1 text-[10px] font-medium text-amber-800"
+                            >
+                              Accept
+                            </button>
+                          ) : null}
+                        </div>
                       ) : cell.confidence >= 90 ? (
                         <Check className="h-3.5 w-3.5 flex-shrink-0 text-emerald-500 opacity-60" />
                       ) : null}

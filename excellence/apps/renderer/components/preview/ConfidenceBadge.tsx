@@ -7,8 +7,9 @@ interface ConfidenceBadgeProps {
 
 export function ConfidenceBadge({ value, compact = false }: ConfidenceBadgeProps) {
   const rounded = Math.round(value);
-  const isHigh = rounded >= 90;
-  const isMedium = rounded >= 70;
+  // Use thresholds: green >=85, yellow >=60, red otherwise
+  const isHigh = rounded >= 85;
+  const isMedium = rounded >= 60;
   const classes = isHigh
     ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300'
     : isMedium

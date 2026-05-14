@@ -6,6 +6,8 @@ interface CommitBarProps {
   onToggleEdit: () => void;
   onDismiss: () => void;
   onCommit: () => void;
+  acceptDisabled?: boolean;
+  onReextract?: () => void;
 }
 
 export function CommitBar({
@@ -14,10 +16,13 @@ export function CommitBar({
   onToggleEdit,
   onDismiss,
   onCommit,
+  acceptDisabled = false,
+  onReextract,
 }: CommitBarProps) {
   return (
     <div className="flex items-center justify-between border-t border-slate-200 px-6 py-4 dark:border-slate-800">
-      <button
+      <div className="flex items-center gap-2">
+        <button
         type="button"
         onClick={onToggleEdit}
         className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
@@ -29,6 +34,16 @@ export function CommitBar({
         <Pencil className="h-4 w-4" />
         {isEditMode ? 'Done editing' : 'Edit table'}
       </button>
+        {onReextract && (
+          <button
+            type="button"
+            onClick={onReextract}
+            className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium bg-amber-50 text-amber-700 hover:bg-amber-100"
+          >
+            Re-clean
+          </button>
+        )}
+      </div>
 
       <div className="flex items-center gap-2">
         <button
@@ -42,8 +57,13 @@ export function CommitBar({
         <button
           type="button"
           onClick={onCommit}
-          disabled={isCommitting}
-          className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+          disabled={isCommitting || acceptDisabled}
+          title={acceptDisabled ? 'Load a workbook first' : undefined}
+          className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-white transition-colors ${
+            isCommitting || acceptDisabled
+              ? 'bg-blue-300 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
         >
           {isCommitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           {isCommitting ? 'Committing...' : 'Commit to sheet'}
