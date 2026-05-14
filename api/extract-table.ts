@@ -6,7 +6,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const GEMINI_MODEL = 'gemini-pro';
 
 if (!GEMINI_API_KEY) {
-  console.error('GEMINI_API_KEY is not set');
+  console.error('⚠️ GEMINI_API_KEY is not set in environment variables');
 }
 
 const client = new GoogleGenerativeAI(GEMINI_API_KEY);
