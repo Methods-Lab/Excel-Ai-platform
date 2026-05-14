@@ -3,6 +3,7 @@
   "buildCommand": "npm run build -w @excel-ai-platform/renderer",
   "outputDirectory": "apps/renderer/dist",
   "routes": [
-    { "src": "^/.*", "dest": "/index.html" }
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "^/(?!api).*", "dest": "/index.html" }
   ]
 }
