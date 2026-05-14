@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "cd excellence && npm install && npm run build -w @excel-ai-platform/renderer",
+  "buildCommand": "npm install && cd excellence && npm install && npm run build -w @excel-ai-platform/renderer",
   "outputDirectory": "excellence/apps/renderer/dist",
   "routes": [
     { "src": "/assets/.*", "dest": "/assets" },
