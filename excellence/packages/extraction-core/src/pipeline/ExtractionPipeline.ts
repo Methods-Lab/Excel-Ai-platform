@@ -42,7 +42,7 @@ const buildExtractionMethod = (
 		case 'text':
 			return 'text';
 		case 'mixed':
-			return 'gemini';
+			return 'groq';
 		default:
 			return 'text';
 	}

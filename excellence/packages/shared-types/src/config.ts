@@ -10,7 +10,7 @@ export type AppEnv = 'development' | 'production';
 
 export interface AppConfig {
   env: AppEnv;
-  geminiModel: string;
+  groqModel: string;
   useLocalAI: boolean;
   localModelPath?: string;
   ocrConfidenceThreshold: number;

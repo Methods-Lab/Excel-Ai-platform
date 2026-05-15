@@ -14,5 +14,5 @@ export interface ExtractionResult {
     | 'relay'
     | 'paste'
     | 'text'
-    | 'gemini';
+    | 'groq';
 }

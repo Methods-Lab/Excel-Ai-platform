@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-The Electron shell needs a backend service for Gemini API integration, extraction job management, and future server-side processing. We need async HTTP with Pydantic validation.
+The Electron shell needs a backend service for Groq API integration, extraction job management, and future server-side processing. We need async HTTP with Pydantic validation.
 
 ## Decision
 Use FastAPI (Python 3.11+) with Uvicorn on port 8745 as the primary backend API.
@@ -13,7 +13,7 @@ Use FastAPI (Python 3.11+) with Uvicorn on port 8745 as the primary backend API.
 - **Async native**: First-class async/await, ideal for LLM API calls
 - **Pydantic v2**: Automatic validation, serialization, and camelCase alias generation to match TypeScript contracts
 - **OpenAPI auto-docs**: Free Swagger UI for development and testing
-- **Python ecosystem**: Direct access to google-generativeai, PaddleOCR, OpenCV
+- **Python ecosystem**: Direct access to httpx, PaddleOCR, OpenCV
 - **Alternative rejected**: Express.js — would duplicate the Python dependency anyway for OCR/AI libraries
 
 ## Consequences

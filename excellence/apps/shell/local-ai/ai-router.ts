@@ -24,7 +24,7 @@ const shouldUseCloud = (prompt: string): boolean => {
   return complexKeywords.some((keyword) => lowered.includes(keyword));
 };
 
-const callGemini = async (prompt: string, systemInstruction: string): Promise<string> => {
+const callGroq = async (prompt: string, systemInstruction: string): Promise<string> => {
   try {
     const requestId = randomUUID();
     const response = await fetch(`${API_BASE_URL}/ai/query`, {
@@ -42,11 +42,11 @@ const callGemini = async (prompt: string, systemInstruction: string): Promise<st
 
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(`Gemini error: ${JSON.stringify(data)}`);
+      throw new Error(`Groq error: ${JSON.stringify(data)}`);
     }
     return data.result ?? '';
   } catch (err) {
-    throw new Error(`Gemini request failed: ${String(err)}`);
+    throw new Error(`Groq request failed: ${String(err)}`);
   }
 };
 
@@ -64,7 +64,7 @@ export class AIRouter {
           'cloud_ai',
           'This request needs cloud AI for complex reasoning.'
         );
-        const text = await callGemini(prompt, systemInstruction);
+        const text = await callGroq(prompt, systemInstruction);
         return { text, source: 'cloud' };
       }
 
