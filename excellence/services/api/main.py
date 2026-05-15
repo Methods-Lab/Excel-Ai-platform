@@ -9,12 +9,12 @@ from routers import ai, extraction, health
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if not settings.gemini_api_key:
+    if not settings.groq_api_key:
         raise RuntimeError(
-            "GEMINI_API_KEY not set. Copy .env.example to .env and add your key."
+            "GROQ_API_KEY not set. Copy .env.example to .env and add your key."
         )
     print(
-        f"[Excellence API] Ready | model={settings.gemini_model} | env={settings.app_env}"
+        f"[Excellence API] Ready | model={settings.groq_model} | env={settings.app_env}"
     )
     yield
     print("[Excellence API] Shutdown.")

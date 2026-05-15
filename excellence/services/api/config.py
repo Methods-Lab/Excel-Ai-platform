@@ -1,13 +1,18 @@
-from pydantic_settings import BaseSettings
+from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
-    gemini_api_key: str = ""
-    gemini_model: str = "text-bison-001"
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.3-70b-versatile"
     app_env: str = "development"
     api_port: int = 8745
 
-    model_config = {"env_file": ".env"}
+    model_config = SettingsConfigDict(env_file=PROJECT_ROOT / ".env", extra="ignore")
 
 
 settings = Settings()

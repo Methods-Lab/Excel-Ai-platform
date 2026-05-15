@@ -12,7 +12,7 @@ ExtractionMethod = Literal[
     "relay",
     "paste",
     "text",
-    "gemini",
+    "groq",
 ]
 
 
